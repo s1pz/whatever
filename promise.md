@@ -105,3 +105,4 @@ function myPromise(callBack) {
    }
 
 ```
+只提供了`then`，`catch`，`finally`三个`api`， 保持和`promise`一样的使用方式。
