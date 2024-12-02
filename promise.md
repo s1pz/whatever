@@ -10,6 +10,7 @@ function myPromise(callBack) {
        let resolveQueue = [];
        let rejectQueue = [];
        let value = undefined;
+       let isAbort = false; // 尝试注销提示报错任务
        try {
          callBack(resolve, reject);
        } catch (e) {
@@ -64,6 +65,11 @@ function myPromise(callBack) {
          state = "rejected";
          value = e;
          exec(rejectQueue);
+         setTimeout(() => {
+           if (!isAbort) {
+             console.error('Uncaught (in promise) ' + e);
+           }
+         }, 0)
        }
        function then(
          onFulfilled = (x) => x,
@@ -99,10 +105,18 @@ function myPromise(callBack) {
            }
            addSuccess(success);
            addFail(fail);
+           isAbort = true;
          });
        }
      })(callBack);
    }
 
 ```
+
 只提供了`then`，`catch`，`finally`三个`api`， 保持和`promise`一样的使用方式。
+
+##### 介绍下思路
+
+`promise` 本质上也是一个语法糖、主要实现思路是首先、要实现链式调用，也就是`return`值必须是一个新的`promise`，将新的`promise`的状态改变方法注入到`父promise`中。然后、再就是`fulfilled`和`rejected`状态的传递。最后再就是错误的捕获，`promise`内部必须要捕获所有的错误、然后传递错误、如果没有后代接收错误、就`console.error`错误。
+
+整体代码也就`100`行、稍微看看就懂了
